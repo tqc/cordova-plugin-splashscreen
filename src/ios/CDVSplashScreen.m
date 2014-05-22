@@ -130,15 +130,27 @@
     BOOL supportsPortrait = [vc supportsOrientation:UIInterfaceOrientationPortrait] || [vc supportsOrientation:UIInterfaceOrientationPortraitUpsideDown];
     BOOL isOrientationLocked = !(supportsPortrait && supportsLandscape);
 
+    
     if (imageName) {
         imageName = [imageName stringByDeletingPathExtension];
     } else {
-        imageName = @"Default";
+        imageName = @"LaunchImage";
     }
 
+    if ((IsAtLeastiOSVersion(@"7.0"))) {
+         imageName = [imageName stringByAppendingString:@"-700"];
+    }
+    
     if (CDV_IsIPhone5()) {
-        imageName = [imageName stringByAppendingString:@"-568h"];
-    } else if (CDV_IsIPad() && isOrientationLocked) {
+        imageName = [imageName stringByAppendingString:@"-568h@2x"];
+    } else if (CDV_IsIPad()) {
+        if (supportsLandscape && !supportsPortrait) {
+            imageName = [imageName stringByAppendingString:@"-Landscape"];
+        }
+        else if (supportsPortrait && !supportsLandscape) {
+            imageName = [imageName stringByAppendingString:@"-Portrait"];
+        }
+        else {
         switch (orientation) {
             case UIInterfaceOrientationLandscapeLeft:
             case UIInterfaceOrientationLandscapeRight:
@@ -151,7 +163,18 @@
                 imageName = [imageName stringByAppendingString:@"-Portrait"];
                 break;
         }
+        }
     }
+    
+    CGSize screenSize = [self.viewController.view convertRect:[UIScreen mainScreen].bounds fromView:nil].size;
+    if (screenSize.width > 1024) {
+            imageName = [imageName stringByAppendingString:@"@2x"];
+    }
+    
+    if (CDV_IsIPad()) {
+        imageName = [imageName stringByAppendingString:@"~ipad"];
+    }
+    NSLog(imageName);
 
     if (![imageName isEqualToString:_curImageName]) {
         UIImage* img = [UIImage imageNamed:imageName];
